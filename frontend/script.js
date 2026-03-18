@@ -2,7 +2,7 @@ async function fetchMenu() {
     const grid = document.getElementById('cardapio-grid');
     
     try {
-        const response = await fetch('http://localhost:3000/api/cardapio');
+        const response = await fetch('https://modelo-cardapio.vercel.app/api/cardapio');
         const dados = await response.json();
 
         grid.innerHTML = dados.map(item => `
