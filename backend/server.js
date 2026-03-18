@@ -7,10 +7,10 @@ const { JWT } = require('google-auth-library');
 const app = express();
 
 // 1. Middlewares Iniciais
-app.use(cors()); // Permite acesso do seu Front-end (Live Server)
-app.use(express.json()); // Permite que o servidor entenda JSON no corpo das requisições
+app.use(cors()); 
+app.use(express.json()); 
 
-// 2. Middleware de Segurança (CSP) - Resolve erros de bloqueio do navegador
+// 2. Middleware de Segurança (CSP)
 app.use((req, res, next) => {
     res.setHeader(
         "Content-Security-Policy",
@@ -19,20 +19,22 @@ app.use((req, res, next) => {
     next();
 });
 
-// 3. Configuração da Autenticação Google via Service Account
+// 3. Configuração da Autenticação Google (Ajustado para Produção/Vercel)
+// Aqui usamos o conteúdo da variável de ambiente em vez do arquivo físico
 const serviceAccountAuth = new JWT({
     email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    key: require('./credentials.json').private_key,
+    key: process.env.GOOGLE_PRIVATE_KEY ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined,
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 
 const doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID, serviceAccountAuth);
 
-// 4. Rota Raiz - Evita erro 404 ao abrir http://localhost:3000/
+// 4. Rota Raiz - Agora responde algo para a Vercel não dar 404
 app.get('/', (req, res) => {
-    res.status(200).send({
+    res.status(200).json({
         status: "Online",
-        message: "API do Cardápio funcionando. Use /api/cardapio para acessar os dados."
+        message: "API do Cardápio funcionando com sucesso!",
+        endpoint: "/api/cardapio"
     });
 });
 
@@ -61,14 +63,11 @@ app.get('/api/cardapio', async (req, res) => {
     }
 });
 
-// 6. Inicialização do Servidor (Ajustado para Vercel + Local)
+// 6. Exportação e Inicialização
 const PORT = process.env.PORT || 3000;
 
-// Exporta o app para a Vercel conseguir ler as rotas
 module.exports = app;
 
-// O app.listen só deve rodar se você estiver no seu computador (Local)
-// Na Vercel, a própria plataforma gerencia a execução.
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
         console.log(`\n🚀 ==========================================`);
