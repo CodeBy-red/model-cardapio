@@ -23,7 +23,10 @@ app.use((req, res, next) => {
 // Aqui usamos o conteúdo da variável de ambiente em vez do arquivo físico
 const serviceAccountAuth = new JWT({
     email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    key: process.env.GOOGLE_PRIVATE_KEY ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined,
+    // Essa linha limpa aspas extras e converte as quebras de linha corretamente
+    key: process.env.GOOGLE_PRIVATE_KEY 
+        ? process.env.GOOGLE_PRIVATE_KEY.split(String.raw`\n`).join('\n').replace(/"/g, '') 
+        : undefined,
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 
