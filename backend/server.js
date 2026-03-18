@@ -61,11 +61,19 @@ app.get('/api/cardapio', async (req, res) => {
     }
 });
 
-// 6. Inicialização do Servidor
+// 6. Inicialização do Servidor (Ajustado para Vercel + Local)
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`\n🚀 ==========================================`);
-    console.log(`✅ Back-end rodando em: http://localhost:${PORT}`);
-    console.log(`📡 Rota da API: http://localhost:${PORT}/api/cardapio`);
-    console.log(`==============================================\n`);
-});
+
+// Exporta o app para a Vercel conseguir ler as rotas
+module.exports = app;
+
+// O app.listen só deve rodar se você estiver no seu computador (Local)
+// Na Vercel, a própria plataforma gerencia a execução.
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`\n🚀 ==========================================`);
+        console.log(`✅ Back-end LOCAL rodando em: http://localhost:${PORT}`);
+        console.log(`📡 Rota da API: http://localhost:${PORT}/api/cardapio`);
+        console.log(`==============================================\n`);
+    });
+}
