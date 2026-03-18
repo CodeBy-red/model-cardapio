@@ -19,17 +19,18 @@ app.use((req, res, next) => {
     next();
 });
 
-// 3. Configuração da Autenticação Google (Ajustado para Produção/Vercel)
-// Aqui usamos o conteúdo da variável de ambiente em vez do arquivo físico
+// 3. Configuração da Autenticação Google
+// Ajuste crucial: Lemos da variável de ambiente e corrigimos as quebras de linha da chave
 const serviceAccountAuth = new JWT({
     email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
     key: process.env.GOOGLE_PRIVATE_KEY ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined,
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 
+// Usamos GOOGLE_SHEET_ID (garanta que este seja o nome na Vercel)
 const doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID, serviceAccountAuth);
 
-// 4. Rota Raiz - Agora responde algo para a Vercel não dar 404
+// 4. Rota Raiz (Check de Saúde)
 app.get('/', (req, res) => {
     res.status(200).json({
         status: "Online",
@@ -45,29 +46,28 @@ app.get('/api/cardapio', async (req, res) => {
         const sheet = doc.sheetsByIndex[0]; 
         const rows = await sheet.getRows(); 
 
+        // Na versão 4.x, os dados ficam direto na row (ex: row.Nome)
         const cardapio = rows.map(row => ({
-            nome: row.get('Nome'),
-            descricao: row.get('Descricao'),
-            preco: row.get('Preco'),
-            disponivel: row.get('Disponivel'),
-            imagem: row.get('Imagem')
+            nome: row.Nome || row._rawData[0], // Tenta pelo nome ou pela primeira coluna
+            descricao: row.Descricao || row._rawData[1],
+            preco: row.Preco || row._rawData[2],
+            disponivel: row.Disponivel || row._rawData[3],
+            imagem: row.Imagem || row._rawData[4]
         })).filter(item => item.disponivel?.toLowerCase() === 'sim');
 
         res.json(cardapio);
     } catch (error) {
-        console.error("❌ Erro ao buscar dados:", error.message);
-        res.status(500).json({ 
-            error: 'Erro ao conectar com Google Sheets',
-            details: error.message 
-        });
+        console.error("❌ Erro:", error.message);
+        res.status(500).json({ error: 'Erro nos dados', details: error.message });
     }
 });
 
-// 6. Exportação e Inicialização
-const PORT = process.env.PORT || 3000;
-
+// 6. Exportação para Vercel (Obrigatório ser module.exports = app)
 module.exports = app;
 
+const PORT = process.env.PORT || 3000;
+
+// Só inicia o servidor se não estiver na produção (Vercel)
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
         console.log(`\n🚀 ==========================================`);
