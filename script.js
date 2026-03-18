@@ -1,3 +1,5 @@
+let carrinho = [];
+
 async function fetchMenu() {
     const grid = document.getElementById('cardapio-grid');
     
@@ -12,8 +14,8 @@ async function fetchMenu() {
                     <h3>${item.nome}</h3>
                     <p>${item.descricao}</p>
                     <span class="price">R$ ${item.preco}</span>
-                    <button onclick="enviarWhats('${item.nome}', '${item.preco}')">
-                        Pedir no WhatsApp
+                    <button onclick="adicionarAoCarrinho('${item.nome}', '${item.preco}')">
+                        Adicionar ao Carrinho
                     </button>
                 </div>
             </div>
@@ -23,22 +25,43 @@ async function fetchMenu() {
     }
 }
 
-function enviarWhats(produto, preco) {
-    const numeroWhatsApp = "5511922048764"; // COLOQUE O NÚMERO AQUI (com DDD e sem espaços)
+// 1. Função para adicionar itens à lista
+function adicionarAoCarrinho(nome, preco) {
+    // Convertemos o preço para número (removemos o R$ e trocamos vírgula por ponto se necessário)
+    const precoLimpo = parseFloat(preco.toString().replace(',', '.'));
     
-    // Criamos a mensagem personalizada
-    const mensagem = `Olá! Gostaria de pedir o seguinte item do cardápio:\n\n` +
-                     `*Produto:* ${produto}\n` +
-                     `*Valor:* R$ ${preco}\n\n` +
-                     `Pode me informar o prazo de entrega?`;
+    carrinho.push({ nome, preco: precoLimpo });
+    
+    // Atualiza o texto do botão flutuante (se você o criar no HTML)
+    const cartCount = document.getElementById('cart-count');
+    if (cartCount) cartCount.innerText = carrinho.length;
 
-    // Codificamos a mensagem para URL (converte espaços em %20, etc)
-    const mensagemFormatada = encodeURIComponent(mensagem);
-    
-    // Link final
-    const url = `https://wa.me/${numeroWhatsApp}?text=${mensagemFormatada}`;
-    
-    // Abre em uma nova aba
+    alert(`${nome} adicionado ao carrinho!`);
+}
+
+// 2. Função para fechar o pedido e enviar tudo de uma vez
+function enviarPedidoWhatsApp() {
+    if (carrinho.length === 0) {
+        alert("Seu carrinho está vazio!");
+        return;
+    }
+
+    const numeroWhatsApp = "5511922048764";
+    let total = 0;
+    let resumoItens = "";
+
+    carrinho.forEach((item, index) => {
+        resumoItens += `*${index + 1}. ${item.nome}* - R$ ${item.preco.toFixed(2)}\n`;
+        total += item.preco;
+    });
+
+    const mensagem = `*Novo Pedido!* 📝\n\n` +
+                     `Olá, gostaria de pedir os seguintes itens:\n\n` +
+                     `${resumoItens}\n` +
+                     `*Total: R$ ${total.toFixed(2)}*\n\n` +
+                     `Pode confirmar o recebimento?`;
+
+    const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
     window.open(url, '_blank');
 }
 

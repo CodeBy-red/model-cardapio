@@ -6,6 +6,7 @@
     <meta name="google" content="notranslate">
     <title>Menu Digital | Portfólio</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
@@ -17,6 +18,29 @@
         <div class="loading">Carregando menu...</div>
     </main>
 
+    <div id="btn-finalizar" onclick="enviarPedidoWhatsApp()" style="display: none; position: fixed; bottom: 30px; right: 30px; background: #1a1a1a; color: #d4af37; padding: 15px 25px; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000; border: 1px solid #d4af37; transition: transform 0.3s ease; align-items: center; gap: 12px; font-family: 'Poppins', sans-serif;">
+        <span style="font-size: 1.2rem;">🛒</span>
+        <span>FINALIZAR PEDIDO</span>
+        <span id="cart-count" style="background: #d4af37; color: #1a1a1a; border-radius: 4px; padding: 2px 10px; font-size: 0.9em; font-weight: 800; margin-left: 5px;">0</span>
+    </div>
+
     <script src="script.js"></script>
+
+    <script>
+        // Esta função garante que o botão só apareça após o primeiro item ser adicionado
+        function verificarBotao() {
+            const btn = document.getElementById('btn-finalizar');
+            const count = parseInt(document.getElementById('cart-count').innerText);
+            if (count > 0) {
+                btn.style.display = 'flex';
+            }
+        }
+        // Monitora mudanças no texto do contador
+        const observer = new MutationObserver(verificarBotao);
+        setTimeout(() => {
+            const target = document.getElementById('cart-count');
+            if(target) observer.observe(target, { childList: true });
+        }, 1000);
+    </script>
 </body>
 </html>
